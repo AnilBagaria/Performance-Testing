@@ -1,0 +1,50 @@
+/*
+This script is for Create Directory and Output to a text file functions reference.
+Two functions are there.
+1. make_dir()
+2. Create_file()
+We are calling these two functions in the vuser_init() function.
+1. make_dir() - it will create a directory at the specified path.
+2. Create_file() - It is creating a text file in the mentioned path and writing a string into it.
+
+*/
+
+
+vuser_init()
+{
+	
+	make_dir();
+	Create_file();
+
+	return 0;
+	
+}
+
+make_dir()
+{
+	
+	//1. To Create a Directory - Give the path in the Array and then call the function - mkdir
+	
+			char new_dir[] = "D:\\NewFolderAB";
+			mkdir(new_dir);
+	
+	return 0;	
+}
+	
+Create_file()
+{
+	char *filename="D:\\NewFolderAB\\asd.txt";
+	
+	long file;
+	
+	file = fopen(filename,"a+");
+	
+	fprintf(file, "%s\n","ahdkajdweuyrhiwhfkj");
+	
+	fclose(file);
+
+	
+	
+
+return 0;
+}
