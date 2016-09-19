@@ -1,0 +1,68 @@
+protocol; web services 
+how to create a soap request using LR:
+
+
+flight_new_message()
+{
+
+	web_add_auto_header("Accept-Encoding", "gzip, deflate, sdch");
+
+	web_add_auto_header("Accept-Language", "en-US,en;q=0.8");
+
+	web_add_auto_header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36");
+
+	web_add_auto_header("Accept-Encoding", "gzip, deflate");
+	
+	lr_start_transaction("send_new_flight_message");
+
+	soap_request("StepName=FlightNewMessage", 
+		"URL=http://mirsal2uatbpel.dubaitrade.ae/FlightArrivalDepartureService/IFlightArrivalDepartureService", 
+		"SOAPEnvelope="
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
+			" <SOAP-ENV:Body>"
+			"  <FLIGHTARRIVALDEPARTUREREQUEST xmlns=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDepartureServiceParameters/1.0\">"
+			"   <ns1:UNB xmlns:ns1=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns2:MESSAGECODE xmlns:ns2=\"http://www.customs.pcfc.com/Schema/Common/2.0\">FLT</ns2:MESSAGECODE>"
+			"    <ns3:MESSAGEVERSIONNUMBER xmlns:ns3=\"http://www.customs.pcfc.com/Schema/Common/2.0\">1</ns3:MESSAGEVERSIONNUMBER>"
+			"    <ns4:SENDERIDENTIFICATION xmlns:ns4=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns4:SENDERIDENTIFICATION>"
+			"    <ns5:INTERCHANGECONTROLREFERENCE xmlns:ns5=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns5:INTERCHANGECONTROLREFERENCE>"
+			"    <ns6:RECIPIENTIDENTIFICATION xmlns:ns6=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns6:RECIPIENTIDENTIFICATION>"
+			"    <ns7:DATETIME xmlns:ns7=\"http://www.customs.pcfc.com/Schema/Common/2.0\">2015-02-11T09:05:36.009Z</ns7:DATETIME>"
+			"   </ns1:UNB>"
+			"   <ns8:UNZ xmlns:ns8=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns9:INTERCHANGECONTROLCOUNT xmlns:ns9=\"http://www.customs.pcfc.com/Schema/Common/2.0\">0</ns9:INTERCHANGECONTROLCOUNT>"
+			"    <ns10:CHECKSUMCODE xmlns:ns10=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns10:CHECKSUMCODE>"
+			"   </ns8:UNZ>"
+			"   <ns11:UTH xmlns:ns11=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns12:REPLYTOTRANSPORTMODE xmlns:ns12=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns12:REPLYTOTRANSPORTMODE>"
+			"    <ns13:REPLYTOADDRESS xmlns:ns13=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns13:REPLYTOADDRESS>"
+			"    <ns14:REPLYTOMESSAGEFORMAT xmlns:ns14=\"http://www.customs.pcfc.com/Schema/Common/2.0\">XML</ns14:REPLYTOMESSAGEFORMAT>"
+			"   </ns11:UTH>"
+			"   <ns15:UNH xmlns:ns15=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns16:MESSAGEREFERENCENUMBER xmlns:ns16=\"http://www.customs.pcfc.com/Schema/Common/2.0\">DNATA</ns16:MESSAGEREFERENCENUMBER>"
+			"    <ns17:MESSAGETYPE xmlns:ns17=\"http://www.customs.pcfc.com/Schema/Common/2.0\">NEW</ns17:MESSAGETYPE>"
+			"   </ns15:UNH>"
+			"   <ns18:FLIGHTDETAILS xmlns:ns18=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns18:FLIGHTARRIVALDEPARTURECODE>{flighttype}</ns18:FLIGHTARRIVALDEPARTURECODE>"
+			"    <ns18:FLIGHTNUMBER>{ffirstpart}{ffirstpart}{fmidpart}{flastpart}</ns18:FLIGHTNUMBER>"
+			"    <ns18:FLIGHTSCHEDULEDATE>{fscheddate}</ns18:FLIGHTSCHEDULEDATE>"
+			"    <ns18:FLIGHTROUTE>{flightroute}</ns18:FLIGHTROUTE>"
+			"    <ns18:FLIGHTINFORMATION>NEW</ns18:FLIGHTINFORMATION>"
+			"    <ns18:FLIGHTMODE xsi:nil=\"true\"/>"
+			"   </ns18:FLIGHTDETAILS>"
+			"   <ns19:FLIGHTSCHEDULE xmlns:ns19=\"http://www.customs.pcfc.com/Schema/Reconciliation/FlightArrivalDeparture/2.1\">"
+			"    <ns19:STATEDTIMEOFARRIVALDEPARTURE>{estimatedtime}</ns19:STATEDTIMEOFARRIVALDEPARTURE>"
+			"    <ns19:ESTIMATEDTIMEOFARRIVALDEPARTURE>{estimatedtime}</ns19:ESTIMATEDTIMEOFARRIVALDEPARTURE>"
+			"    <ns19:ACTUALTIMEOFARRIVALDEPARTURE>{actualtime}</ns19:ACTUALTIMEOFARRIVALDEPARTURE>"
+			"   </ns19:FLIGHTSCHEDULE>"
+			"  </FLIGHTARRIVALDEPARTUREREQUEST>"
+			" </SOAP-ENV:Body>"
+			"</SOAP-ENV:Envelope>",
+		"Snapshot=t1.inf", 
+		"ResponseParam=response", 
+		LAST);
+lr_end_transaction("send_new_flight_message", LR_AUTO);
+
+	return 0;
+}
