@@ -1,0 +1,51 @@
+FTP script:
+
+Global variable:
+FTP ftp2;
+
+
+vuser_init()
+{
+
+	
+	ftp2 = 0;
+	ftp_logon_ex(&ftp2, "FtpLogon", 
+		"URL=ftp://ekcargouat:ek@123456@10.37.228.14", 
+		LAST);
+
+
+	return 0;
+}
+
+
+
+******************
+
+Action()
+{
+    
+	lr_start_transaction("put_file_dlv");
+
+
+
+	ftp_put_ex(&ftp2, "FtpPut", 
+		"SOURCE_PATH=D:\\RECONAIR\\temp\\{fname}", "TARGET_PATH=//AirManifestSrcUAT/{fname}", "MODE=ASCII", 
+		"PASSIVE=TRUE", ENDITEM, 
+		LAST);
+
+
+lr_end_transaction("put_file_dlv", LR_AUTO);
+
+
+	
+	lr_think_time(1);
+	return 0;
+}
+
+********************************
+
+vuser_end()
+{
+		ftp_logout_ex(&ftp2);
+	return 0;
+}
