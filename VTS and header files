@@ -1,0 +1,170 @@
+First we need to create the VT table instance and define the column name.
+To connect to VTS:
+lrvtc_connect("DCD01504",8777,VTOPT_KEEP_ALIVE); 
+server name :DCD01504
+port number: 8777
+
+once you get the parameter and want to put it on virtual table then – 
+decno is a parameter – which we will capture in the script.
+lrvtc_send_message("IM1_PUAT2USER87",lr_eval_string("{decno}"));
+
+IM1_PUAT2USEr87 is the column name in the virtual table.
+
+Second scenario when we want to pick the values from Virtual table serevr.
+Global variable:
+char  *VtsServer = "DCD01504";
+int   nPort = 8777;
+int rc = 0;
+unsigned short status;
+char *outvalue = NULL;
+char column[30];
+PVCI2 pvci = 0;
+
+pvci = vtc_connect(VtsServer,nPort,VTOPT_KEEP_ALIVE);
+lr_log_message("pvci=%d\n", pvci);
+strcpy(column,"IM1_");
+    strcat(column,lr_eval_string("{username}"));
+
+    lr_output_message("%s",column);
+
+
+
+
+
+How to include a library file in LR script – 
+
+#include "\\DCD01505\Library\dppLibraryuat2.h"  
+Include this file in the global section and put the .h file at the given location . For login logout..etc
+
+For example :
+
+void dtDPPLogin(char serviceName[30])
+
+{
+	char *serId,*temp,temp1[30];
+	long val;
+	int i,len;
+	
+	web_cache_cleanup();
+	web_cleanup_cookies();
+	web_set_sockets_option("SSL_VERSION", "TLS");
+	//web_set_sockets_option("SSL_VERSION", "TLS1.1");
+	Web_set_max_html_param_len("99999");
+	//    <input type="hidden" name="request_id" value="6572670472265695289">
+	web_reg_save_param("reqid","LB=name=\"request_id\" value=\"","RB=\">","Ord=1",LAST);
+	web_url("eservicesuat.dubaitrade.ae", 
+		"URL=http://eservicesuat.dubaitrade.ae/", 
+		"TargetFrame=", 
+		“Resource=0", 
+		"RecContentType=text/html", 
+		"Referer=", 
+		"Snapshot=t6.inf", 
+		"Mode=HTML", 
+		LAST);
+	
+	lr_save_string(serviceName,"serName");
+	web_reg_save_param("serviceID","LB=label: 'Declaration', id: '","RB= = \{ label: '{serName}', id:","Ord=1",LAST);
+		web_reg_save_param_regexp(
+		"ParamName=jsessionid",
+		"RegExp=JSESSIONID=(.*?);",
+		SEARCH_FILTERS,
+		"Scope=Cookies",
+		"IgnoreRedirections=Yes",
+		"RequestUrl=*/main.do*",
+		LAST);
+		
+	web_submit_data("auth_cred_submit", 
+		"Action=https://eservicesuatsso.dubaitrade.ae/oam/server/auth_cred_submit", 
+		"Method=POST", 
+		"TargetFrame=", 
+		"RecContentType=text/html", 
+		"Referer=", 
+		"Snapshot=t7.inf", 
+		"Mode=HTML", 
+		ITEMDATA, 
+		"Name=username", "Value={username}", ENDITEM, 
+		"Name=password", "Value={password}", ENDITEM, 
+		"Name=signin", "Value=Sign In", ENDITEM, 
+		"Name=request_id", "Value={reqid}", ENDITEM, 
+		LAST);
+		
+	serId=lr_eval_string("{serviceID}");
+    temp=serId;
+    len=strlen(temp);
+    i=len;
+	
+	while (*temp) { // While there are more characters to process...
+	    if (isdigit(*temp)) { // Upon finding a digit, ...
+	        val = strtol(temp, &temp, 10); // Read a number, ...
+	        //lr_output_message("%ld\n", val); // and print it.
+	    } else { // Otherwise, move on to the next character.
+	        temp++;
+	    }
+	}
+	sprintf(temp1, "%ld", val);
+    lr_save_string(temp1,"serviceid");
+    
+	//strcpy(temp,serId);
+	
+}
+
+Now in the init section we can simply use the login function – 
+ lr_start_transaction("ins_15_01_login");
+    
+    dtDPPLogin("New U2");
+    
+        lr_end_transaction("ins_15_01_login",LR_AUTO);
+
+
+•	Create a C language script, like Web Http/Html script. Add VTS API in vuser_init method to connect to the server, like the following:
+int   rc = 0;
+char  *VtsServer = "192.168.0.100";
+int   nPort = 8888; 
+    
+PVCI2 pvci = 0; 
+
+vuser_init()
+{
+        
+    pvci = lrvtc_connect(VtsServer,nPort,VTOPT_KEEP_ALIVE);
+    lr_log_message("pvci=%d\n", pvci);
+        
+    return 0;
+}
+ 
+•	In Action.c, add some code to retrieve one column from the server and remove from the server at the same time. You can run the action multiple iterations, and it will retrieve one:
+
+char * cname; //column name
+int ret;
+ 
+RetrieveMessage()
+{
+    lr_start_transaction("retrieve_column");
+    rc =  lrvtc_retrieve_messages1("cname",";");
+    lr_log_message("lrvtc_retrieve_messages1 rc=%d\n", rc);
+    lr_log_message("cname is %s", lr_eval_string("{cname}"));
+    lr_end_transaction("retrieve_column", LR_AUTO);
+}
+
+Action()
+{
+    RetrieveMessage();
+    return 0;
+}
+ 
+•	In vuser_end.c, add API call to close the VTS handle:
+vuser_end()
+{
+    lrvtc_disconnect();    
+    return 0;
+}
+ 
+ VTS Support in TruClient
+In LR 11.52, the user needs to write VTS API calls in a C function, and then use it in TruClient scripts, which is not very convenient. As of 12.00, VTS JavaScript APIs are available in TruClient which can be used directly in TruClient steps. You can add "Evaluate JavaScript" step in the TruClient Sidebar, and add some code similar to the following:
+
+TC.vtcConnect("localhost",8080,"myVTSAlias");
+…
+TC.vtcGetCell("columnName1",1, "myVTSAlias");
+TC.vtcAddCell("columnName2", 1, "myVTSAlias");
+
+
