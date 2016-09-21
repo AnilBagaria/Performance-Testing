@@ -1,0 +1,24 @@
+Re: AJAX TruClient and how to deal with Authentication
+Are you looking to supply proxy authentication credentials? If so, this is the solution:
+ 
+1. In the url address field in Firefox, enter about:config.
+2. Click the I'll be careful, I promise! button.
+3. In the Filter field, enter network.negotiate-auth.allow-proxies.
+4. Right click network.negotiate-auth.allow-proxies and select Toggle. This changes the value to false.
+5. Record the initial navigation step again. You also need to record entering the Proxy Authetication username and password, you will notice this is recorded as "sub steps" under the navigation step. You record authentication as you will be prompted on every iteration of the "Action".
+
+Hi,
+I assume you have the username details in parameter file, right?
+If so, you should use an Evaluate JavaScript step with the following code in it
+ 
+var userName = TC.getParam("userNameParam"); //replace userNameParam with your parameter name
+TC.log("user name is: " + userName); // this will write the information to the log
+if you wish to write the data to your own file you can use the following code
+var userName = TC.getParam("userNameParam"); //replace userNameParam with your parameter name
+IO.write(TC.scriptDir + "userNameData.txt", userName + "\n");
+// you can write the data under a different path in a different file name. 
+// See IO. functions in http://tchelp.saas.hpe.com/en/12.53/Content/TruClient/reference/functions.htm
+use userName variable in later steps for the actual authentication. Note that if you canll TC,getParam twice in the same iteration it might advance the parameter cursor depending on the policy you chose.
+Regards,
+Shlomi
+
