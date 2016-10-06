@@ -1,0 +1,3 @@
+lr_start_transaction(lr_eval_string("Do Something {pIteration}"));
+…
+lr_end_transaction(lr_eval_string("Do Something {pIteration}"), LR_AUTO);
