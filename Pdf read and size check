@@ -1,0 +1,71 @@
+char *strstr( const char *string1, const char *string2); // Explicit declaration required for C functions that do not return integers.
+#define BUFFER_SIZE 16384 // 16 KB. If this gets too big, use malloc() instead to avoid "too many local variables" compilation error.
+ 
+Action()
+{
+    int pdf_size; // size of the downloaded PDF (determined at runtime)
+    int fp_save; // file pointer for saving the PDF
+    int fp_popen; // file/stream pointer for the output from popen()
+    int count; // number of characters that have been read from the popen() stream
+    char buffer[BUFFER_SIZE]; // allocate memory for the output of popen()
+ 
+    lr_start_transaction("download_pdf");
+ 
+    // Save entire HTTP response body
+    // Note that the PDF download must be in a step by itself in order to save the contents. It cannot be an EXTRARES.
+    web_reg_save_param_ex(
+        "ParamName=PdfContents",
+        "LB/BIN=",
+        "RB/BIN=",
+        SEARCH_FILTERS,
+        "Scope=Body",
+        LAST);
+ 
+    web_reg_find("Text=PDF", LAST); // Basic check
+    web_url("Download PDF", 
+        "URL=http://www.myloadtest.com/resources/hp-discover-2012-tb2337-moncrieff.pdf", 
+        "Resource=0", // Not a resource 
+        "RecContentType=application/pdf", 
+        LAST);	
+ 
+    pdf_size = web_get_int_property(HTTP_INFO_DOWNLOAD_SIZE);
+    if (pdf_size < 100000){
+        lr_error_message("Downloaded PDF is smaller than expected."); // By itself, this is not a very good check.
+        lr_exit(LR_EXIT_ACTION_AND_CONTINUE, LR_FAIL);
+    }
+ 
+    lr_end_transaction("download_pdf", LR_AUTO);
+    lr_think_time(10);
+    lr_start_transaction("check_pdf");
+ 
+    // Save file.
+    lr_save_string(lr_eval_string("C:\\LoadRunner\\Data\\{TimeStamp}{VuserId}.pdf"), "FileName"); // Ensure that the file name is unique to avoid overwriting the contents
+    fp_save = fopen(lr_eval_string("{FileName}"), "wb"); // open file in "write, binary" mode.
+    fwrite(lr_eval_string("{PdfContents}"), pdf_size, 1, fp_save);
+    fclose(fp_save);
+ 
+    // Run "C:\LoadRunner\Lib\pdftotext {FileName} -" and save the output to a parameter.
+    fp_popen = popen(lr_eval_string("C:\\LoadRunner\\Lib\\pdftotext {FileName} -"), "r");
+    count = fread(buffer, sizeof(char), BUFFER_SIZE, fp_popen);
+    if (feof(fp_popen) == 0) {
+        lr_error_message("Did not reach the end of the input stream when reading. Try increasing BUFFER_SIZE.");
+        return -1;
+    }
+    buffer[count] = NULL; // Make sure the string in the buffer is null-terminated.
+    lr_save_string(buffer, "PdfText");
+    lr_output_message("The Windows version is: %s", buffer);
+    pclose(fp_popen);
+ 
+    // Check that the PDF parameter contains the expected text ("LoadRunner").
+    if (strstr(lr_eval_string("{PdfText}"), "LoadRunner") == NULL) {
+        lr_error_message("PDF file does not contain the expected string.");
+        lr_exit(LR_EXIT_ACTION_AND_CONTINUE, LR_FAIL);
+    }
+ 
+    // Cleanup. Delete the file.
+    system(lr_eval_string("del /q {FileName}"));
+ 
+    lr_end_transaction("check_pdf", LR_AUTO);
+ 
+    return 0;
+}
