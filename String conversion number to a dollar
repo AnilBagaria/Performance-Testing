@@ -1,0 +1,34 @@
+How to convert the string into $ format? 
+5448 = $5,448.00
+
+
+
+
+// This function converts a numeric string to a dollar value.
+// eg. 123456 becomes $123,456.00
+LPCSTR ConvertStringToDollars(char input[20]) {
+    int i;
+    // To account for the extra characters that will be added, the size of output
+    // should be 4 + strlen(input) + (strlen(input)/3)
+    char output[30];
+
+    strcpy(output,"$");
+
+    // insert a comma every third character, but not at the start.
+    for (i=0; i<strlen (input); i++) {
+        if ( ((strlen(input)-i)%3==0) && (i!=0) ) {
+            output[strlen(output)] = ′,′;
+        }
+        output[strlen(output)] = input[i];
+    }
+
+    strcat(output, ".00");
+
+    return output;
+}
+
+Action()
+{
+    lr_output_message(ConvertStringToDollars("123456")); // Prints "$123,456.00"
+    return 0;
+}
