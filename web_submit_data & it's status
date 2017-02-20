@@ -1,0 +1,21 @@
+declare the status variable as an int.
+If - is wrong in loadrunner..it should be inlower case - "if".
+
+status = web_url("{WebServerURL}",
+                "URL=http://{WebServerURL}", 
+                "TargetFrame=", 
+                "Resource=0", 
+               "RecContentType=text/html", 
+                "Referer=", 
+                "Snapshot=t1.inf", 
+                "Mode=HTML", 
+                LAST);
+
+
+            if (status==LR_FAIL)
+                {
+             lr_end_transaction("PM_01_NavigateToWeightWatchers", LR_FAIL);
+
+             lr_exit(LR_EXIT_MAIN_ITERATION_AND_CONTINUE, LR_AUTO);
+                }
+            lr_end_transaction("PM_01_NavigateToWeightWatchers",LR_PASS);
