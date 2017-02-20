@@ -1,0 +1,31 @@
+char column[30];
+char  *VtsServer = "DCD01504";
+int   nPort = 8876;
+
+PVCI2 pvci = 0;
+char rc = 0;
+unsigned short status;
+char *outvalue = NULL;
+
+
+
+pvci=vtc_connect(VtsServer,nPort,VTOPT_KEEP_ALIVE);
+
+
+	rc=vtc_retrieve_message( pvci,
+		"pdecn",
+		&outvalue );
+	
+	if (strlen(outvalue)==0 ) {
+	lr_exit( LR_EXIT_VUSER,
+		LR_PASS );
+	}
+
+	lr_save_string( outvalue,"pdecno" );
+	
+
+	lr_output_message(lr_eval_string("{pdecno}"));
+	
+	
+	
+rc=vtc_send_message(pvci,"bookingrqst",lr_eval_string("{inspid}"),&status);
